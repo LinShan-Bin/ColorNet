@@ -1,2 +1,2 @@
-from .clothes_dataset import ColorfulClothes
-from .clothes_dataset import ColorfulClothesUnfolded
+from .clothes_dataset import ColorfulClothes, ColorfulClothesUnfolded, ColorfulClothesBin
+from .word_embedding import Embed

@@ -8,3 +8,13 @@ merge_sgns_bigram_char300.txt
 *.md5
 utils/__pycache__
 MONet-pytorch
+archived
+.idea
+*.model
+tb_logs
+models/__pycache__
+result.txt
+word_test.txt
+word_train.txt
+colors.txt
+.DS_Store
