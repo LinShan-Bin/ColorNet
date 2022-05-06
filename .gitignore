@@ -18,3 +18,4 @@ word_test.txt
 word_train.txt
 colors.txt
 .DS_Store
+label_processor/__pycache__
