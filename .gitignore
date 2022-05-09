@@ -19,3 +19,6 @@ word_train.txt
 colors.txt
 .DS_Store
 label_processor/__pycache__
+temp
+.DS_Store
+pretrained_model

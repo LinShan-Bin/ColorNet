@@ -6,21 +6,19 @@ import scipy
 import sklearn.metrics as metrics
 import matplotlib.pyplot as plt
 import os
+from torch.utils.tensorboard import SummaryWriter
 
 
 class Trainer(object):
-    def __init__(self, model, class_num, criterion, optimizer, milestones=[10, 30], gamma=0.1, last_epoch=-1, reinforcement=None):
+    def __init__(self, model, class_num, criterion, optimizer, milestones=[10, 30], gamma=0.1, reinforcement=None):
         self.model = model
         self.class_num = class_num
         self.criterion = criterion
         self.optimizer = optimizer
-        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=milestones, gamma=gamma, last_epoch=last_epoch)
+        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=milestones, gamma=gamma)
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.reinfocement = reinforcement
-        self.training_loss = []
-        self.training_acc = []
-        self.test_loss = []
-        self.test_acc = []
+        self.writer = SummaryWriter('./logs')
         
     def model_summary(self):
         num_params = sum(p.numel() for p in self.model.parameters())
@@ -33,7 +31,7 @@ class Trainer(object):
             if isinstance(m, (nn.Conv2d, nn.Linear)):
                 nn.init.kaiming_uniform_(m.weight)
 
-    def train(self, train_loader, epochs, save=True, save_dir='./pretrained_model/', freq=1, test_loader=None):
+    def train(self, train_loader, epochs, save_dir='./pretrained_model/', freq=1, test_loader=None):
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
         self.model.to(self.device)
@@ -44,13 +42,13 @@ class Trainer(object):
             totoal_samples = 0
             self.model.train()
             pbar = tqdm(train_loader)
-            for data, _, target in pbar:
-                data, target = data.to(self.device), target.to(self.device).squeeze().long()
+            for i, (data, mask, opt_tags, target) in enumerate(pbar):
+                data, mask, opt_tags, target = data.to(self.device), mask.to(self.device), opt_tags.to(self.device), target.squeeze().long().to(self.device)
                 # Data reinforcement.
                 if self.reinfocement is not None:
                     data = self.reinfocement(data)
                 
-                output = self.model(data)
+                output = self.model(data * mask) * opt_tags
                 loss = self.criterion(output, target)
                 
                 loss.backward()
@@ -60,15 +58,15 @@ class Trainer(object):
                 totoal_loss += loss.item()
                 totoal_correct += (output.max(1)[1] == target).sum().item()
                 totoal_samples += target.size(0)
-                
+                pbar.set_description(f'Loss: {totoal_loss / totoal_samples:.6f}')
+                self.writer.add_scalar('train/loss (step)', loss.item(), epoch * len(train_loader) + i + 1)
+                self.writer.add_scalar('train/acc (step)', (output.max(1)[1] == target).sum().item() / target.size(0), epoch * len(train_loader) + i + 1)
             
             if (epoch + 1) % freq == 0:
                 avg_loss = totoal_loss / len(train_loader)
                 acc = totoal_correct / totoal_samples
-                self.training_loss.append((epoch + 1, avg_loss))
-                self.training_acc.append((epoch + 1, acc))
-                np.save(save_dir + 'loss.npy', np.array(self.training_loss))
-                np.save(save_dir + 'acc.npy', np.array(self.training_acc))
+                self.writer.add_scalar('train/loss', avg_loss, epoch + 1)
+                self.writer.add_scalar('train/acc', acc, epoch + 1)
                 
                 save_name = save_dir + 'model_' + str(epoch + 1) + '.pth' if (epoch + 1) % 5 == 0 else save_dir + 'model_final.pth'
                 torch.save(self.model.state_dict(), save_name)
@@ -81,15 +79,15 @@ class Trainer(object):
             self.scheduler.step()
             
 
-    def test(self, test_loader, detail=False, epoch=0):
+    def test(self, test_loader, detail=False, epoch=0, log_dir='./pretrained_model/'):
         self.model.eval()
         pred = []
         target = []
         total_loss = 0
         with torch.no_grad():
-            for x, y in test_loader:
-                x, y = x.to(self.device), y.to(self.device).squeeze().long()
-                output = self.model(x)
+            for x, m, o, y in test_loader:
+                x, m, o, y = x.to(self.device), m.to(self.device), o.to(self.device), y.to(self.device).long().squeeze(1)
+                output = self.model(x) * o
                 loss = self.criterion(output, y)
                 total_loss += loss.item()
                 pred.append(output.cpu().numpy())
@@ -119,17 +117,6 @@ class Trainer(object):
         else:
             acc = metrics.accuracy_score(target, pred.argmax(axis=1))
             loss = total_loss / len(test_loader)
-            self.test_acc.append((epoch + 1, acc))
-            self.test_loss.append((epoch + 1, loss))
             print("Accuracy: {:.4f}.\tAvg Loss: {:.6f}".format(acc, loss))
-
-    def log_curv(self, log=None):
-        if log is None:
-            log = self.training_loss
-        x = [i for i, _ in log]
-        y = [j for _, j in log]
-        plt.plot(x, y)
-        plt.title('Training loss')
-        plt.xlabel('Epoch')
-        plt.ylabel('Total Loss')
-        plt.show()
+            self.writer.add_scalar('test/acc', acc, epoch + 1)
+            self.writer.add_scalar('test/loss', loss, epoch + 1)
