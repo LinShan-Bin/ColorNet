@@ -19,6 +19,8 @@ DATA_PATH = '/home/featurize/data/medium/'
 embed = label_processor.CStdLib(single=True)
 CLASS_NUM = embed.class_num
 
+# TODO: Ablation experiment (Mask)
+# TODO: Use other instance segmentation models (e.g. Swin)
 dataset = utils.ColorfulClothesCLF(DATA_PATH, class_num=CLASS_NUM, embed=embed, train=True)
 data_distribution = dataset.clean_and_analyse()
 print(data_distribution)
@@ -28,7 +30,7 @@ val_len = int(len(small) * 0.1)
 train, val = random_split(small, [len(small) - val_len, val_len])
 
 train_loader = DataLoader(train, batch_size=64, shuffle=True, num_workers=6)
-test_loader = DataLoader(val, batch_size=1, shuffle=False, num_workers=6)
+test_loader = DataLoader(val, batch_size=128, shuffle=False, num_workers=6)
 
 # %%
 model = convnext_tiny(pretrained=True)
@@ -41,9 +43,11 @@ model.classifier[2] = nn.Linear(768, CLASS_NUM)
 
 # %%
 loss_weight = (1. / data_distribution).to(torch.device('cuda:0' if torch.cuda.is_available() else 'cpu'))
+# TODO: Ablation experiment
 criterion = nn.CrossEntropyLoss(reduction='mean', weight=loss_weight)
+# TODO: Add an introductory task: predict the RGB value.
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-4)
-trainer = utils.Trainer(model, class_num=CLASS_NUM, criterion=criterion, optimizer=optimizer, milestones=[5, 10, 15])
+trainer = utils.Trainer(model, class_num=CLASS_NUM, criterion=criterion, optimizer=optimizer, milestones=[1, 5, 10])
 
 # %%
 trainer.train(train_loader=train_loader, test_loader=test_loader, epochs=20)
