@@ -58,25 +58,44 @@ class CStdLib(object):
         if (num_char + num_str) > 1:
             # print('Multi color detected: ', org_words, matched_char, matched_str)
             self.multi.append(org_words)
-            return None
-        if num_char == 1:
-            self.success += 1
-            return self.word2label[matched_char[0]]
-        if num_str == 1:
-            self.success += 1
-            return self.word2label[matched_str[0]]
+            if self.single:
+                return None
+            else:
+                result = [self.word2label[char] for char in matched_char]
+                result += [self.word2label[str] for str in matched_str]
+                return result
+        if self.single:
+            if num_char == 1:
+                self.success += 1
+                return self.word2label[matched_char[0]]
+            if num_str == 1:
+                self.success += 1
+                return self.word2label[matched_str[0]]
+        else:
+            if num_char == 1:
+                self.success += 1
+                return [self.word2label[matched_char[0]]]
+            if num_str == 1:
+                self.success += 1
+                return [self.word2label[matched_str[0]]]
         
         # Step 4: compare with confusion
         matched_conf = []
         for conf in self.confusion:
             if conf in words:
                 matched_conf.append(conf)
-        if len(matched_conf) == 1:
-            self.success += 1
-            return self.word2label[matched_conf[0]]
-        # print('Multi confusion detected or No matched char/str/con: ', org_words, matched_conf)
-        self.unmatched.append(org_words)
-        return None
+        if self.single:
+            if len(matched_conf) == 1:
+                self.success += 1
+                return self.word2label[matched_conf[0]]
+            # print('Multi confusion detected or No matched char/str/con: ', org_words, matched_conf)
+            self.unmatched.append(org_words)
+            return None
+        elif len(matched_conf) > 1:
+            result = [self.word2label[conf] for conf in matched_conf]
+            return result
+        else:
+            return []
 
 
 if __name__ == '__main__':
