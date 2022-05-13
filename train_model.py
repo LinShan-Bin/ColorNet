@@ -22,7 +22,7 @@ embed = label_processor.CStdLib(single=True)
 CLASS_NUM = embed.class_num
 
 
-def train(model):
+def train(model, save_dir, bs, lr, ms):
     # TODO: Ablation experiment (Mask)
     # TODO: Use other instance segmentation models (e.g. Swin)
     dataset = utils.ColorfulClothesCLF(DATA_PATH, class_num=CLASS_NUM, embed=embed, train=True)
@@ -32,7 +32,8 @@ def train(model):
     sample_weights = dataset.sample_weights
 
     weighted_sample = WeightedRandomSampler(sample_weights, num_samples=len(dataset), generator=torch.Generator().manual_seed(42))
-    train_loader = DataLoader(dataset, batch_size=64, num_workers=6, sampler=weighted_sample)
+    # 租的 A6000 跑的。钱包：┭┮﹏┭┮
+    train_loader = DataLoader(dataset, batch_size=bs, num_workers=6, sampler=weighted_sample)
 
     reinforce = Compose([
         RandomCrop(224, padding=64),
@@ -43,8 +44,8 @@ def train(model):
     # loss_weight = (1. / data_distribution).to(torch.device('cuda:0' if torch.cuda.is_available() else 'cpu'))
     criterion = nn.CrossEntropyLoss(reduction='mean')
     # TODO: Add an introductory task: predict the RGB value.
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-4)
-    trainer = utils.Trainer(model, save_dir='./pretrained_model/MaskedConvX_tiny/', class_num=CLASS_NUM, reinforcement=reinforce, criterion=criterion, optimizer=optimizer, milestones=[1, 4, 7, 10], gamma=0.3)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
+    trainer = utils.Trainer(model, save_dir=save_dir, class_num=CLASS_NUM, reinforcement=reinforce, criterion=criterion, optimizer=optimizer, milestones=ms, gamma=0.3)
 
     trainer.train(train_loader=train_loader, test_loader=None, epochs=30)
 
@@ -59,7 +60,7 @@ def exp_convx_tiny():
     for i in range(5):
         for param in model.features[i].parameters():
             param.requires_grad = False
-    train(model)
+    train(model, save_dir='./pretrained_model/MaskedConvX_tiny/', bs=64, lr=1e-4, ms=[1, 4, 7, 10])
 
 def exp_convx_base():
     model = convnext_base(pretrained=True)
@@ -72,7 +73,7 @@ def exp_convx_base():
     for i in range(5):
         for param in model.features[i].parameters():
             param.requires_grad = False
-    train(model)
+    train(model, save_dir='./pretrained_model/MaskedConvX_base/', bs=128, lr=3e-5, ms=[1, 3, 5, 7, 10])
 
 
 if __name__ == '__main__':

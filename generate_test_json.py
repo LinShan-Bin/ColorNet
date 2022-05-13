@@ -59,9 +59,18 @@ def get_json(model):
 
 
 if __name__ == '__main__':
-    model = convnext_tiny(pretrained=False)
-    model.classifier[2] = nn.Linear(768, CLASS_NUM)
-    check_point = torch.load('checkpoint11.pth')
+    # For MaskedConvX_tiny
+    # model = convnext_tiny(pretrained=False)
+    # model.classifier[2] = nn.Linear(768, CLASS_NUM)
+    # check_point = torch.load('pretrained_model/MaskedConvX_tiny/checkpoint.pth')
+    # state_dict = check_point['model_state_dict']
+    # model.load_state_dict(state_dict)
+    # get_json(model)
+
+    # For MaskedConvX_base
+    model = convnext_base(pretrained=False)
+    model.classifier[2] = nn.Linear(1024, CLASS_NUM)
+    check_point = torch.load('pretrained_model/MaskedConvX_base/checkpoint.pth')
     state_dict = check_point['model_state_dict']
     model.load_state_dict(state_dict)
     get_json(model)
