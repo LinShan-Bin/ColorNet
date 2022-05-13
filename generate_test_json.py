@@ -48,7 +48,7 @@ def get_json(model):
                 for i, tag in enumerate(opt_tags):
                     emb = embed(tag)
                     if len(emb) == 0:
-                        prob[i] = 0.1  # 随机的
+                        prob[i] = 1. / len(opt_tags) + 0.2  # 这么定是希望模型做排除法（似乎挺有用的，和换mask一起提升了2%）
                     else:
                         prob[i] = np.mean(sf[emb])  # 一个标签也适用
                 tag_id = np.argmax(prob)
@@ -61,6 +61,7 @@ def get_json(model):
 if __name__ == '__main__':
     model = convnext_tiny(pretrained=False)
     model.classifier[2] = nn.Linear(768, CLASS_NUM)
-    state_dict = torch.load('./model_best.pth')
+    check_point = torch.load('checkpoint11.pth')
+    state_dict = check_point['model_state_dict']
     model.load_state_dict(state_dict)
     get_json(model)
