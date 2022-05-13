@@ -78,8 +78,6 @@ class ColorfulClothesCLF(Dataset):
     
     def __getitem__(self, index):
         image_path = os.path.join(self.data_path, self.product_id[index], self.image_name[index])
-        image_id = self.image_name[index].split('.')[0]
-        id = int(image_id.split('_')[-1])
         image = self.tranform(read_image(image_path).float() / 255.)
         
         optional_tags = self.json[self.product_id[index]]['optional_tags']
@@ -95,9 +93,10 @@ class ColorfulClothesCLF(Dataset):
         if self.mask:
             mask_path = image_path.replace('jpg', 'pt')
             mask = torch.load(mask_path)
-            return image, mask, multi_hot, true_label, self.product_id[index]
-            
-        return image, multi_hot, true_label, self.product_id[index]
+        else:
+            mask = torch.ones(self.resolution).unsqueeze(0)  # 统一接口方便处理
+        
+        return image, mask, multi_hot, true_label, self.product_id[index]
     
 
 class ColorfulClothesLabel(Dataset):

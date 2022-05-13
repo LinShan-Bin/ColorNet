@@ -61,6 +61,20 @@ def exp_convx_tiny():
             param.requires_grad = False
     train(model)
 
+def exp_convx_base():
+    model = convnext_base(pretrained=True)
+    num_params = sum(p.numel() for p in model.parameters())
+    print("Number of parameters: {}".format(num_params))
+    print(model)
+
+    # Freeze the first 5 feature layers (7 in total) and change the classifier.
+    model.classifier[2] = nn.Linear(1024, CLASS_NUM)
+    for i in range(5):
+        for param in model.features[i].parameters():
+            param.requires_grad = False
+    train(model)
+
 
 if __name__ == '__main__':
-    exp_convx_tiny()
+    # exp_convx_tiny()
+    exp_convx_base()
