@@ -19,7 +19,7 @@ CLASS_NUM = embed.class_num
 DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 BATCH_SIZE = 64
-dataset = utils.ColorfulClothesTest(DATA_PATH, class_num=CLASS_NUM, embed=embed)
+dataset = utils.ColorfulClothesTest(DATA_PATH, class_num=CLASS_NUM, embed=embed, mask=False)
 loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=6)
 
 JSON_PATH = DATA_PATH + 'test_all.json'
@@ -34,8 +34,9 @@ def get_json(model):
         for imgs, masks, muls, pro_id, img_ids, img_ns in pbar:
             imgs, masks, muls = imgs.to(DEVICE), masks.to(DEVICE), muls.to(DEVICE)
             logits = model(imgs * masks)
-            softmaxed = F.softmax(logits, dim=1) * muls
-            softmaxed = softmaxed.detach().cpu().numpy()
+            # softmaxed = F.softmax(logits, dim=1) * muls
+            # softmaxed = softmaxed.detach().cpu().numpy()
+            softmaxed = (logits * muls).detach().cpu().numpy()
             
             # 生成标签
             for i in range(len(img_ids)):
@@ -44,11 +45,12 @@ def get_json(model):
                 name = img_ns[i]
                 sf = softmaxed[i]
                 opt_tags = test_json[pid]['optional_tags']
-                prob = np.zeros(len(opt_tags))
+                prob = np.zeros(len(opt_tags))  # 不一定是“真概率”
                 for i, tag in enumerate(opt_tags):
                     emb = embed(tag)
                     if len(emb) == 0:
-                        prob[i] = 1. / len(opt_tags) + 0.2  # 这么定是希望模型做排除法（似乎挺有用的，和换mask一起提升了2%）
+                        prob[i] = 10
+                        # 这么定是希望模型做排除法，其他颜色概率不大时选择未知的标签。10 是尝试出来效果比较好的值。
                     else:
                         prob[i] = np.mean(sf[emb])  # 一个标签也适用
                 tag_id = np.argmax(prob)
@@ -60,17 +62,17 @@ def get_json(model):
 
 if __name__ == '__main__':
     # For MaskedConvX_tiny
-    # model = convnext_tiny(pretrained=False)
-    # model.classifier[2] = nn.Linear(768, CLASS_NUM)
-    # check_point = torch.load('pretrained_model/MaskedConvX_tiny/checkpoint.pth')
-    # state_dict = check_point['model_state_dict']
-    # model.load_state_dict(state_dict)
-    # get_json(model)
-
-    # For MaskedConvX_base
-    model = convnext_base(pretrained=False)
-    model.classifier[2] = nn.Linear(1024, CLASS_NUM)
-    check_point = torch.load('pretrained_model/MaskedConvX_base/checkpoint.pth')
+    model = convnext_tiny(pretrained=False)
+    model.classifier[2] = nn.Linear(768, CLASS_NUM)
+    check_point = torch.load('./checkpoint_e8(best).pth')
     state_dict = check_point['model_state_dict']
     model.load_state_dict(state_dict)
     get_json(model)
+
+    # For MaskedConvX_base
+    # model = convnext_base(pretrained=False)
+    # model.classifier[2] = nn.Linear(1024, CLASS_NUM)
+    # check_point = torch.load('pretrained_model/MaskedConvX_base/checkpoint.pth')
+    # state_dict = check_point['model_state_dict']
+    # model.load_state_dict(state_dict)
+    # get_json(model)

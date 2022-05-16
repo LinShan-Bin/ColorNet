@@ -1,0 +1,3 @@
+1 对 logits 进行聚类
+2 象牙白 -> 米白
+3 先乘 opt_tags 再 softmax

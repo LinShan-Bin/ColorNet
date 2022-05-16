@@ -225,6 +225,8 @@ class ColorfulClothesTest(Dataset):
         if self.mask:
             mask_path = image_path.replace('jpg', 'pt')
             mask = torch.load(mask_path)
-            return image, mask, multi_hot, self.product_id[index], id, self.image_name[index]
+
+        else:
+            mask = torch.ones(self.resolution).unsqueeze(0)  # 统一接口方便处理
             
-        return image, multi_hot, self.product_id[index], id, self.image_name[index]
+        return image, mask, multi_hot, self.product_id[index], id, self.image_name[index]
