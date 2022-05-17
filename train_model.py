@@ -25,7 +25,7 @@ CLASS_NUM = embed.class_num
 def train(model, save_dir, bs, lr, ms):
     # TODO: Ablation experiment (Mask)
     # TODO: Use other instance segmentation models (e.g. Swin)
-    dataset = utils.ColorfulClothesCLF(DATA_PATH, class_num=CLASS_NUM, embed=embed, train=True)
+    dataset = utils.ColorfulClothesCLF(DATA_PATH, class_num=CLASS_NUM, embed=embed, train=True, mask=False)
     data_distribution = dataset.clean_and_analyse()
     print(data_distribution)
 
@@ -60,7 +60,7 @@ def exp_convx_tiny():
     for i in range(5):
         for param in model.features[i].parameters():
             param.requires_grad = False
-    train(model, save_dir='./pretrained_model/MaskedConvX_tiny/', bs=64, lr=1e-4, ms=[1, 4, 7, 10])
+    train(model, save_dir='./pretrained_model/ConvX_tiny/', bs=64, lr=1e-4, ms=[1, 4, 7, 10])
 
 def exp_convx_base():
     model = convnext_base(pretrained=True)
@@ -77,5 +77,5 @@ def exp_convx_base():
 
 
 if __name__ == '__main__':
-    # exp_convx_tiny()
-    exp_convx_base()
+    exp_convx_tiny()
+    # exp_convx_base()

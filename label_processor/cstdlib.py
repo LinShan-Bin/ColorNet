@@ -91,7 +91,7 @@ class CStdLib(object):
             # print('Multi confusion detected or No matched char/str/con: ', org_words, matched_conf)
             self.unmatched.append(org_words)
             return None
-        elif len(matched_conf) > 1:
+        elif len(matched_conf) >= 1:
             result = [self.word2label[conf] for conf in matched_conf]
             return result
         else:
