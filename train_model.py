@@ -5,7 +5,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, random_split, WeightedRandomSampler
-from torchvision.models import convnext_tiny, convnext_base
+from torchvision.models import convnext_tiny, convnext_base, resnet50
 from torchvision.transforms import RandomCrop, RandomRotation, RandomHorizontalFlip, Compose
 from torch.utils.tensorboard import SummaryWriter
 
@@ -23,8 +23,8 @@ CLASS_NUM = embed.class_num
 
 
 def train(model, save_dir, bs, lr, ms):
-    # TODO: Ablation experiment (Mask)
-    # TODO: Use other instance segmentation models (e.g. Swin)
+    # TODO: (Ablation experiment) Mask
+    # The model works better without masks.
     dataset = utils.ColorfulClothesCLF(DATA_PATH, class_num=CLASS_NUM, embed=embed, train=True, mask=False)
     data_distribution = dataset.clean_and_analyse()
     print(data_distribution)
@@ -32,7 +32,6 @@ def train(model, save_dir, bs, lr, ms):
     sample_weights = dataset.sample_weights
 
     weighted_sample = WeightedRandomSampler(sample_weights, num_samples=len(dataset), generator=torch.Generator().manual_seed(42))
-    # 租的 A6000 跑的。钱包：┭┮﹏┭┮
     train_loader = DataLoader(dataset, batch_size=bs, num_workers=6, sampler=weighted_sample)
 
     reinforce = Compose([
@@ -40,14 +39,30 @@ def train(model, save_dir, bs, lr, ms):
         RandomHorizontalFlip(p=0.5),
         RandomRotation(degrees=30),
     ])
-    # TODO: Ablation experiment
+    # TODO: (Ablation experiment) Sample
     # loss_weight = (1. / data_distribution).to(torch.device('cuda:0' if torch.cuda.is_available() else 'cpu'))
     criterion = nn.CrossEntropyLoss(reduction='mean')
-    # TODO: Add an introductory task: predict the RGB value.
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
+    # TODO: (optimize) Add an introductory task: predict the RGB value.
+    # No need. Since the model is already well trained.
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
     trainer = utils.Trainer(model, save_dir=save_dir, class_num=CLASS_NUM, reinforcement=reinforce, criterion=criterion, optimizer=optimizer, milestones=ms, gamma=0.3)
 
     trainer.train(train_loader=train_loader, test_loader=None, epochs=30)
+
+def exp_resnet50():
+    model = resnet50(pretrained=True)
+    num_params = sum(p.numel() for p in model.parameters())
+    print("Number of parameters: {}".format(num_params))
+    print(model)
+
+    model.fc = nn.Linear(2048, CLASS_NUM)
+    for param in model.parameters():
+        param.requires_grad = False
+    for param in model.fc.parameters():
+        param.requires_grad = True
+    for param in model.layer4.parameters():
+        param.requires_grad = True
+    train(model, save_dir='./pretrained_model/ResNet50/', bs=64, lr=1e-4, ms=[1, 4, 7, 10])
 
 def exp_convx_tiny():
     model = convnext_tiny(pretrained=True)
@@ -77,5 +92,6 @@ def exp_convx_base():
 
 
 if __name__ == '__main__':
+    # exp_resnet50()
     exp_convx_tiny()
     # exp_convx_base()
