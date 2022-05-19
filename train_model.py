@@ -74,7 +74,7 @@ def exp_convx_tiny():
     for i in range(5):
         for param in model.features[i].parameters():
             param.requires_grad = False
-    train(model, save_dir='./pretrained_model/ConvX_tiny_test/', bs=64, lr=1e-4, ms=[1, 4, 7, 10])
+    train(model, save_dir='./pretrained_model/ConvX_tiny/', bs=64, lr=1e-4, ms=[1, 4, 7, 10])
 
 def exp_convx_base():
     model = convnext_base(pretrained=True)
@@ -92,5 +92,5 @@ def exp_convx_base():
 
 if __name__ == '__main__':
     # exp_resnet50()
-    exp_convx_tiny()
-    # exp_convx_base()
+    # exp_convx_tiny()
+    exp_convx_base()
