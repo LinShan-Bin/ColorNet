@@ -76,7 +76,7 @@ if __name__ == '__main__':
     # model.load_state_dict(state_dict)
     # get_json(model)
 
-    # For MaskedConvX_tiny
+    # For ConvX_tiny
     model = convnext_tiny(pretrained=False)
     model.classifier[2] = nn.Linear(768, CLASS_NUM)
     check_point = torch.load('pretrained_model/ConvX_tiny_AdamW/checkpoint.pth')
@@ -84,10 +84,10 @@ if __name__ == '__main__':
     model.load_state_dict(state_dict)
     get_json(model)
 
-    # For MaskedConvX_base
+    # For ConvX_base
     # model = convnext_base(pretrained=False)
     # model.classifier[2] = nn.Linear(1024, CLASS_NUM)
-    # check_point = torch.load('pretrained_model/MaskedConvX_base/checkpoint.pth')
+    # check_point = torch.load('pretrained_model/ConvX_base/checkpoint.pth')
     # state_dict = check_point['model_state_dict']
     # model.load_state_dict(state_dict)
     # get_json(model)
