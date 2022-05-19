@@ -5,9 +5,9 @@ from random import sample
 import numpy as np
 import torch
 import torchvision
+from PIL import Image
 from torch.utils.data import Dataset
-from torchvision.io import read_image
-from torchvision.transforms import Resize, Normalize
+from torchvision.transforms import Resize, Normalize, ToTensor
 
 
 DATA_PATH = './dataset/medium/'
@@ -19,6 +19,7 @@ class ColorfulClothesCLF(Dataset):
         self.resolution = resolution
         self.tranform = torchvision.transforms.Compose([
             Resize(resolution),
+            ToTensor(),
             Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
         self.class_num = class_num
@@ -78,7 +79,7 @@ class ColorfulClothesCLF(Dataset):
     
     def __getitem__(self, index):
         image_path = os.path.join(self.data_path, self.product_id[index], self.image_name[index])
-        image = self.tranform(read_image(image_path).float() / 255.)
+        image = self.tranform(Image.open(image_path))
         
         optional_tags = self.json[self.product_id[index]]['optional_tags']
         
@@ -142,8 +143,9 @@ class ColorfulClothesIMG(Dataset):
         self.org = org
         self.tranform = torchvision.transforms.Compose([
             Resize(resolution),
+            ToTensor()
             # Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-            # Segmentation models do not use normalization.
+            # Segmentation models do not need normalization.
         ])
         if train:
             label_path = os.path.join(data_path, 'train_all.json')
@@ -171,8 +173,8 @@ class ColorfulClothesIMG(Dataset):
         image_path = os.path.join(self.data_path, self.product_id[index], self.image_name[index])
         image_id = self.image_name[index].split('.')[0]
         id = int(image_id.split('_')[-1])
-        org_image = read_image(image_path)
-        image = self.tranform(org_image.float() / 255.)
+        org_image = Image.open(image_path)
+        image = self.tranform(org_image)
         if self.org:
             return image, image_path, org_image
         else:
@@ -184,6 +186,7 @@ class ColorfulClothesTest(Dataset):
         self.resolution = resolution
         self.tranform = torchvision.transforms.Compose([
             Resize(resolution),
+            ToTensor(),
             Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
         self.class_num = class_num
@@ -212,7 +215,7 @@ class ColorfulClothesTest(Dataset):
         image_path = os.path.join(self.data_path, self.product_id[index], self.image_name[index])
         image_id = self.image_name[index].split('.')[0]
         id = int(image_id.split('_')[-1])
-        image = self.tranform(read_image(image_path).float() / 255.)
+        image = self.tranform(Image.open(image_path))
         
         optional_tags = self.labels[self.product_id[index]]['optional_tags']
         

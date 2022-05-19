@@ -8,7 +8,6 @@ from torch.utils.data import DataLoader, random_split
 from torchvision.models import resnet50, convnext_tiny, convnext_base
 
 import utils
-import models
 import label_processor
 
 

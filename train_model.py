@@ -11,7 +11,6 @@ from torch.utils.tensorboard import SummaryWriter
 
 
 import utils
-import models
 import label_processor
 
 torch.manual_seed(42)
@@ -75,7 +74,7 @@ def exp_convx_tiny():
     for i in range(5):
         for param in model.features[i].parameters():
             param.requires_grad = False
-    train(model, save_dir='./pretrained_model/ConvX_tiny/', bs=64, lr=1e-4, ms=[1, 4, 7, 10])
+    train(model, save_dir='./pretrained_model/ConvX_tiny_test/', bs=64, lr=1e-4, ms=[1, 4, 7, 10])
 
 def exp_convx_base():
     model = convnext_base(pretrained=True)
@@ -88,7 +87,7 @@ def exp_convx_base():
     for i in range(5):
         for param in model.features[i].parameters():
             param.requires_grad = False
-    train(model, save_dir='./pretrained_model/MaskedConvX_base/', bs=128, lr=3e-5, ms=[1, 3, 5, 7, 10])
+    train(model, save_dir='./pretrained_model/MaskedConvX_base/', bs=64, lr=1e-4, ms=[1, 4, 7, 10])
 
 
 if __name__ == '__main__':
