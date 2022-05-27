@@ -48,6 +48,7 @@ def train(model, save_dir, bs, lr, ms):
 
     trainer.train(train_loader=train_loader, test_loader=None, epochs=30)
 
+
 def exp_resnet50():
     model = resnet50(pretrained=True)
     num_params = sum(p.numel() for p in model.parameters())
@@ -63,6 +64,7 @@ def exp_resnet50():
         param.requires_grad = True
     train(model, save_dir='./pretrained_model/ResNet50/', bs=64, lr=1e-4, ms=[1, 4, 7, 10])
 
+
 def exp_convx_tiny():
     model = convnext_tiny(pretrained=True)
     num_params = sum(p.numel() for p in model.parameters())
@@ -75,6 +77,7 @@ def exp_convx_tiny():
         for param in model.features[i].parameters():
             param.requires_grad = False
     train(model, save_dir='./pretrained_model/ConvX_tiny/', bs=64, lr=1e-4, ms=[1, 4, 7, 10])
+
 
 def exp_convx_base():
     model = convnext_base(pretrained=True)

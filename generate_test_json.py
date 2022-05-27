@@ -25,6 +25,7 @@ JSON_PATH = DATA_PATH + 'test_all.json'
 with open(JSON_PATH, 'r', encoding='utf-8') as f:
     test_json = json.load(f)
 
+
 def get_json(model):
     model = model.to(DEVICE)
     model.eval()
@@ -61,7 +62,6 @@ def get_json(model):
                 id = img_ids[i]
                 name = img_ns[i]
                 test_json[pid]['imgs_tags'][id][name] = logit_i
-
 
     with open('./result.json', 'w+', encoding='utf-8') as f:
         json.dump(test_json, f, ensure_ascii=False, indent=4)

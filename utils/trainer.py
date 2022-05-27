@@ -52,7 +52,8 @@ class Trainer(object):
                 if self.reinfocement is not None:
                     masked = self.reinfocement(masked)
                 
-                output = self.model(masked) * opt_tags
+                # output = self.model(masked) * opt_tags
+                output = self.model(masked) - (1 - opt_tags) * 1e7  # float('inf') 会导致 NaN
                 loss = self.criterion(output, target)
                 
                 loss.backward()

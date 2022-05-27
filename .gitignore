@@ -23,3 +23,5 @@ temp
 .DS_Store
 pretrained_model
 figures
+result_logits.json
+result_labels.json
