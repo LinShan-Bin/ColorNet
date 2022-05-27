@@ -1,2 +1,2 @@
-# from .label_processor import word2label
 from .cstdlib import CStdLib
+# from .word_embedding import Embed

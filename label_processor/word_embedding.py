@@ -5,8 +5,6 @@ import torch
 from gensim.models import KeyedVectors
 
 
-
-
 class Embed():
     def __init__(self, threshold=0.45, w2v_dic='./merge_sgns_bigram_char300.txt'):
         self.threshold = threshold
@@ -42,7 +40,7 @@ class Embed():
         return embedded[:4]
 
 
-# if __name__ == '__main__':
-#     tags = '黑色，颜色：白色'
-#     embed = Embed()
-#     print(embed(tags))
+if __name__ == '__main__':
+    tags = '黑色，颜色：白色'
+    embed = Embed()
+    print(embed(tags))
