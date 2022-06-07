@@ -95,5 +95,5 @@ def exp_convx_base():
 
 if __name__ == '__main__':
     # exp_resnet50()
-    # exp_convx_tiny()
-    exp_convx_base()
+    exp_convx_tiny()
+    # exp_convx_base()
