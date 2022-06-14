@@ -92,7 +92,7 @@ class ColorfulClothesCLF(Dataset):
         true_label = torch.tensor([self.labels[index]], dtype=torch.long)
         
         if self.mask:
-            mask_path = image_path.replace('jpg', 'pt')
+            mask_path = image_path.replace('.jpg', '_0.pt')
             mask = torch.load(mask_path)
         else:
             mask = torch.ones(self.resolution).unsqueeze(0)  # 统一接口方便处理
@@ -226,7 +226,7 @@ class ColorfulClothesTest(Dataset):
                 multi_hot[i] = 1.
         
         if self.mask:
-            mask_path = image_path.replace('jpg', 'pt')
+            mask_path = image_path.replace('.jpg', '_0.pt')
             mask = torch.load(mask_path)
 
         else:
