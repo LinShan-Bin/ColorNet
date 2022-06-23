@@ -12,14 +12,14 @@ from torch.utils.tensorboard import SummaryWriter
 
 
 class Trainer(object):
-    def __init__(self, model, class_num, criterion, optimizer, milestones=[10, 30], gamma=0.1, reinforcement=None, save_dir='./pretrained_model/'):
+    def __init__(self, model, class_num, criterion, optimizer, milestones=[10, 30], gamma=0.1, augmentation=None, save_dir='./pretrained_model/'):
         self.model = model
         self.class_num = class_num
         self.criterion = criterion
         self.optimizer = optimizer
         self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=milestones, gamma=gamma)
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        self.reinfocement = reinforcement
+        self.augmentation = augmentation
         self.writer = SummaryWriter(save_dir + 'logs')
         self.save_dir = save_dir
         
@@ -49,8 +49,8 @@ class Trainer(object):
                 data, mask, opt_tags, target = data.to(self.device), mask.to(self.device), opt_tags.to(self.device), target.squeeze().long().to(self.device)
                 masked = data * mask
                 # Data reinforcement.
-                if self.reinfocement is not None:
-                    masked = self.reinfocement(masked)
+                if self.augmentation is not None:
+                    masked = self.augmentation(masked)
                 
                 # output = self.model(masked) * opt_tags
                 output = self.model(masked) - (1 - opt_tags) * 1e7  # float('inf') 会导致 NaN

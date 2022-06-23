@@ -1,6 +1,3 @@
-# 这是一条在第三方服务器上下载数据集的命令
-# !featurize dataset download 6878dbe0-2e3d-4065-92e0-1db6ec358071
-
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -33,7 +30,7 @@ def train(model, save_dir, bs, lr, ms):
     weighted_sample = WeightedRandomSampler(sample_weights, num_samples=len(dataset), generator=torch.Generator().manual_seed(42))
     train_loader = DataLoader(dataset, batch_size=bs, num_workers=6, sampler=weighted_sample)
 
-    reinforce = Compose([
+    augmentation = Compose([
         RandomCrop(224, padding=64),
         RandomHorizontalFlip(p=0.5),
         RandomRotation(degrees=30),
@@ -44,7 +41,7 @@ def train(model, save_dir, bs, lr, ms):
     # TODO: (optimize) Add an introductory task: predict the RGB value.
     # No need. Since the model is already well trained.
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
-    trainer = utils.Trainer(model, save_dir=save_dir, class_num=CLASS_NUM, reinforcement=reinforce, criterion=criterion, optimizer=optimizer, milestones=ms, gamma=0.3)
+    trainer = utils.Trainer(model, save_dir=save_dir, class_num=CLASS_NUM, augmentation=augmentation, criterion=criterion, optimizer=optimizer, milestones=ms, gamma=0.3)
 
     trainer.train(train_loader=train_loader, test_loader=None, epochs=30)
 
@@ -90,7 +87,7 @@ def exp_convx_base():
     for i in range(5):
         for param in model.features[i].parameters():
             param.requires_grad = False
-    train(model, save_dir='./pretrained_model/MaskedConvX_base/', bs=64, lr=1e-4, ms=[1, 4, 7, 10])
+    train(model, save_dir='./pretrained_model/ConvX_base/', bs=64, lr=1e-4, ms=[1, 4, 7, 10])
 
 
 if __name__ == '__main__':
