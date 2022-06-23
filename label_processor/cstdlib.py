@@ -1,13 +1,12 @@
-import json
+import numpy as np
 
 
 class CStdLib(object):
     """
     Word2Label class
     """
-    def __init__(self, cstdlib_path='./label_processor/cstdlib.json', single=True):
-        with open(cstdlib_path, 'r', encoding='utf8') as f:
-            cstdlib = json.load(f)
+    def __init__(self, cstdlib_path='./label_processor/cstdlib.npy', single=True):
+        cstdlib = np.load(cstdlib_path, allow_pickle=True).item()
         self.remove_list = cstdlib['list']
         self.replace = cstdlib['dict']
         self.char = cstdlib['char']

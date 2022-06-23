@@ -1,8 +1,6 @@
 dataset
 大作业说明
 merge_sgns_bigram_char300.txt
-*.npy
-*.npz
 .ipynb_checkpoints
 *.zip
 *.md5
