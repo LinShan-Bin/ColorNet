@@ -63,7 +63,7 @@ def get_json(model):
                 name = img_ns[i]
                 test_json[pid]['imgs_tags'][id][name] = logit_i
 
-    with open('./result.json', 'w+', encoding='utf-8') as f:
+    with open('./result_logits.json', 'w+', encoding='utf-8') as f:
         json.dump(test_json, f, ensure_ascii=False, indent=4)
 
 
