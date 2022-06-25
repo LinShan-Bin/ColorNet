@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, random_split, WeightedRandomSampler
-from torchvision.models import convnext_tiny, convnext_base, resnet50
+from torchvision.models import resnet50, convnext_tiny, convnext_base, convnext_large
 from torchvision.transforms import RandomCrop, RandomRotation, RandomHorizontalFlip, Compose
 from torch.utils.tensorboard import SummaryWriter
 
@@ -90,7 +90,22 @@ def exp_convx_base():
     train(model, save_dir='./pretrained_model/ConvX_base/', bs=64, lr=1e-4, ms=[1, 4, 7, 10])
 
 
+def exp_convx_large():
+    model = convnext_base(pretrained=True)
+    num_params = sum(p.numel() for p in model.parameters())
+    print("Number of parameters: {}".format(num_params))
+    print(model)
+
+    # Freeze the first 5 feature layers (7 in total) and change the classifier.
+    model.classifier[2] = nn.Linear(1536, CLASS_NUM)
+    for i in range(5):
+        for param in model.features[i].parameters():
+            param.requires_grad = False
+    train(model, save_dir='./pretrained_model/ConvX_large/', bs=64, lr=1e-4, ms=[1, 4, 7, 10])
+    
+    
 if __name__ == '__main__':
     # exp_resnet50()
     exp_convx_tiny()
     # exp_convx_base()
+    # exp_convx_large()

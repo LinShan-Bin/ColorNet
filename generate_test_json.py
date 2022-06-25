@@ -5,7 +5,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, random_split
-from torchvision.models import resnet50, convnext_tiny, convnext_base
+from torchvision.models import resnet50, convnext_tiny, convnext_base, convnext_large
 
 import utils
 import label_processor
@@ -88,6 +88,14 @@ if __name__ == '__main__':
     # model = convnext_base(pretrained=False)
     # model.classifier[2] = nn.Linear(1024, CLASS_NUM)
     # check_point = torch.load('pretrained_model/ConvX_base/checkpoint.pth')
+    # state_dict = check_point['model_state_dict']
+    # model.load_state_dict(state_dict)
+    # get_json(model)
+    
+    # For ConvX_large
+    # model = convnext_large(pretrained=False)
+    # model.classifier[2] = nn.Linear(1536, CLASS_NUM)
+    # check_point = torch.load('pretrained_model/ConvX_large/checkpoint.pth')
     # state_dict = check_point['model_state_dict']
     # model.load_state_dict(state_dict)
     # get_json(model)
