@@ -1,6 +1,8 @@
 # ColorNet: Matching Clothes with Text
 
-张楚斌    自01    2022.4 ~ 2022.6
+清华大学2022年《模式识别》课程大作业
+
+最终结果：Acc = 97.76% (3rd), EM = 93.72% (2nd)
 
 ## 1 文件结构
 
@@ -74,7 +76,3 @@ python generate_test_json.py
 ```
 
 然后运行 `generate_label_munkres.ipynb` 文件，生成最终的标签。
-
-## 4 预训练模型下载地址
-
-https://cloud.tsinghua.edu.cn/d/af94ed0b25d24fa1a31d/
